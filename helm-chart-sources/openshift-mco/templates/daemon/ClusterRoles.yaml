@@ -1,0 +1,59 @@
+{{- with .Values.appSpec.applications.daemon }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ $.Release.Name }}-{{ .name }}
+rules:
+  - apiGroups:
+    - ""
+    resources:
+    - nodes
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - machineconfiguration.openshift.io
+    resources:
+    - machineconfigs
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - security.openshift.io
+    resourceNames:
+    - privileged
+    resources:
+    - securitycontextconstraints
+    verbs:
+    - use
+  - apiGroups:
+    - authentication.k8s.io
+    resources:
+    - tokenreviews
+    - subjectaccessreviews
+    verbs:
+    - create
+  - apiGroups:
+    - authorization.k8s.io
+    resources:
+    - subjectaccessreviews
+    verbs:
+    - create
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ $.Release.Name }}-{{ .name }}-events
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+{{- end }}

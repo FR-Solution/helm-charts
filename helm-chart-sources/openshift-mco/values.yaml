@@ -1,0 +1,184 @@
+appSpec:
+  applications:
+    controller:
+      type: Deployment
+      name: machine-config-controller
+      replicas: 1
+      
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+
+      tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/control-plane
+          operator: Exists
+
+
+      containers:
+        machineConfigController:
+          enabled: true
+          
+          name: machine-config-controller
+
+          image:
+            repository: quay.io/openshift/okd-content
+            sha256: 3d0445055eac2e150260a999ae2b2272c16ab4caf724a9fe15e4bde073f68b81
+
+          extraCommand:
+            - /usr/bin/machine-config-controller
+            - start
+
+          extraArgs:
+            resourcelock-namespace: openshift-machine-config-operator
+            v: 2
+
+          extraPorts:
+            metrics:
+              containerPort: 9001
+              protocol: TCP
+
+    daemon:
+      type: DaemonSet
+      name: machine-config-daemon
+      replicas: 1
+      
+      nodeSelector:
+        kubernetes.io/os: linux
+
+      tolerations:
+        - operator: Exists
+
+      volumes:
+        rootfs:
+          volume:
+            mode: hostPath
+            spec:
+              path: /
+              type: ""
+
+      extraHostNetwork: true
+      extraHostPID: true
+
+      containers:
+        machineConfigDaemon:
+          enabled: true
+          
+          name: machine-config-daemon
+
+          image:
+            repository: quay.io/openshift/okd-content
+            sha256: 3d0445055eac2e150260a999ae2b2272c16ab4caf724a9fe15e4bde073f68b81
+
+          extraCommand:
+            - /usr/bin/machine-config-daemon
+            - start
+
+          extraPorts:
+            metrics:
+              containerPort: 9001
+              protocol: TCP
+
+          extraVolumeMounts:
+            rootfs:
+              volumeMount:
+                path: /rootfs
+
+          extraMetadataEnv:
+            NODE_NAME:
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: spec.nodeName
+
+          extraSecurityContext:
+            allowPrivilegeEscalation: true
+            privileged: true
+            runAsNonRoot: false
+            runAsGroup: 0
+            runAsUser: 0
+
+    operator:
+      type: Deployment
+      name: machine-config-operator
+      replicas: 1
+
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+
+      tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/control-plane
+          operator: Exists
+
+      volumes:
+        rootCA:
+          volume:
+            mode: configMap
+            name: kube-root-ca.crt
+            notReleased: true
+            spec:
+              defaultMode: 420
+        images:
+          volume:
+            mode: configMap
+            name: images
+            spec:
+              defaultMode: 420
+            payload:
+              format: json
+              content:
+                releaseVersion: "4.11.0-0.okd-2022-10-28-153352"
+                machineConfigOperator: "quay.io/openshift/okd-content@sha256:3d0445055eac2e150260a999ae2b2272c16ab4caf724a9fe15e4bde073f68b81"
+                infraImage: "quay.io/openshift/okd-content@sha256:5830c1f15b877b8ef4372e22a9ff5066d42de2412c69b12e2433104793a858b5"
+                keepalivedImage: "quay.io/openshift/okd-content@sha256:37b53b8b2591b9400a932561ff927271684e91ffc1b2a9842e01ec61f165dbfa"
+                corednsImage: "quay.io/openshift/okd-content@sha256:3f0ef4c3b44edb6fe61a1fdc4bdcecfcefbe71a7dedb5c1da7d778d0b19dcc1c"
+                haproxyImage: "quay.io/openshift/okd-content@sha256:dd796d8cd5b5fbcbb96240833004c482e71dc7c639f04dcfb9ad209136428347"
+                baremetalRuntimeCfgImage: "quay.io/openshift/okd-content@sha256:7c7df602ae311bd172550bfba3b944ae157c145dd67e3ec02d081946c5d13077"
+                oauthProxy: "quay.io/openshift/okd-content@sha256:37614e8864b359dd5217de13038424c718318b8219edaf2f60192ecfe0963b97"
+
+      containers:
+        machineConfigOperator:
+          enabled: true
+          
+          name: machine-config-operator
+
+          image:
+            repository: quay.io/openshift/okd-content
+            sha256: 3d0445055eac2e150260a999ae2b2272c16ab4caf724a9fe15e4bde073f68b81
+
+          extraCommand:
+            - /usr/bin/machine-config-operator
+            - start
+
+          extraArgs:
+            images-json: /etc/mco/images/images
+
+          extraPorts:
+            metrics:
+              containerPort: 9001
+              protocol: TCP
+
+          extraVolumeMounts:
+            rootCA:
+              volumeMount:
+                path: /etc/ssl/kubernetes
+            images:
+              volumeMount:
+                path: /etc/mco/images
+
+          extraEnv:
+            RELEASE_VERSION: 4.11.0-0.okd-2022-10-28-153352
+
+          extraMetadataEnv:
+            NODE_NAME:
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: spec.nodeName
+
+          extraSecurityContext:
+            allowPrivilegeEscalation: true
+            privileged: true
+            runAsNonRoot: false
+            runAsGroup: 0
+            runAsUser: 0

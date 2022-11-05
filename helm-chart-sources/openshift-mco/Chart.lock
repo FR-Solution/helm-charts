@@ -1,0 +1,6 @@
+dependencies:
+- name: appSpec
+  repository: file://../../../appspec/0.1.0/appspec
+  version: 0.1.0
+digest: sha256:db24535960e89fe29e456a3f5e3fa9ac0724571d4729e78d06e5aafc6a3848c0
+generated: "2024-07-13T19:34:23.71974283+03:00"

@@ -1,0 +1,28 @@
+{{- with .Values.appSpec.applications.operator }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-cluster-reader: "true"
+  name: {{ $.Release.Name }}-{{ .name }}
+rules:
+  - apiGroups:
+    - machineconfiguration.openshift.io
+    resources:
+    - '*'
+    verbs:
+    - '*'
+  - apiGroups:
+    - config.openshift.io
+    resources:
+    - '*'
+    verbs:
+    - '*'
+  - apiGroups:
+    - ""
+    resources:
+    - configmaps
+    verbs:
+    - '*'
+{{- end }}

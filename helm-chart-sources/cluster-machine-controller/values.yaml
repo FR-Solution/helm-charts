@@ -1,0 +1,21 @@
+providerName: yandex
+
+kubeRbacProxy:
+    port: 63232
+    proxyEndpointsPort: 63233
+    
+    image: quay.io/brancz/kube-rbac-proxy:v0.14.0
+
+controller:
+    listenAddress: "127.0.0.1"
+    port: 63231
+    
+    extraArgs:
+        machine-max-evict-retries: 30
+        failed-machine-deletion-ratio: 0.2
+        machine-safety-orphan-vms-period: 5s
+        machine-drain-delay: 10s
+        bootstrap-token-auth-extra-groups: system:bootstrappers:worker,system:bootstrappers:ingress
+        v: 2
+
+    image: dobrykot/cluster-machine-controller:v0.36.0

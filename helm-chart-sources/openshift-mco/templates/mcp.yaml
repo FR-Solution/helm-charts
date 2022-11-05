@@ -1,0 +1,44 @@
+---
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfigPool
+metadata:
+  labels:
+    machineconfiguration.openshift.io/mco-built-in: ""
+    operator.machineconfiguration.openshift.io/required-for-upgrade: ""
+    pools.operator.machineconfiguration.openshift.io/master: ""
+  name: master
+spec:
+  machineConfigSelector:
+    matchExpressions:
+    - key: machineconfiguration.openshift.io/role
+      operator: In
+      values:
+      - control-plane
+
+  nodeSelector:
+    matchLabels:
+      node-role.kubernetes.io/control-plane: ""
+  paused: false
+ 
+---
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfigPool
+metadata:
+  labels:
+    machineconfiguration.openshift.io/mco-built-in: ""
+    operator.machineconfiguration.openshift.io/required-for-upgrade: ""
+    pools.operator.machineconfiguration.openshift.io/worker: ""
+  name: worker
+spec:
+  machineConfigSelector:
+    matchExpressions:
+    - key: machineconfiguration.openshift.io/role
+      operator: In
+      values:
+      - data-plane
+
+  nodeSelector:
+    matchLabels:
+      node-role.kubernetes.io/data-plane: ""
+  paused: false
+ 

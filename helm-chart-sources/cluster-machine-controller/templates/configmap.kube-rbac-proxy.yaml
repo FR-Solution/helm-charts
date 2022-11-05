@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.providerName }}-{{ include "cluster-machine-controller.name" . }}-kube-rbac-proxy
+  namespace: {{ .Release.Namespace }}
+data:
+  config-file.yaml: |+
+    authorization:
+      resourceAttributes:
+        namespace: {{ .Release.Namespace }}
+        apiGroup: apps
+        apiVersion: v1
+        resource: deployments
+        subresource: prometheus-metrics
+        name: {{ .Values.providerName }}-{{ include "cluster-machine-controller.name" . }}

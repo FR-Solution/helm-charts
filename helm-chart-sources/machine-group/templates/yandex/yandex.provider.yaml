@@ -1,0 +1,355 @@
+{{ if eq .Values.provider.type "YandexCloud" }}
+{{- $currentNamespace             := .Release.Namespace -}}
+{{- $cloudAuthSecret              := (lookup "v1" "Secret" $currentNamespace .Values.provider.name) }}
+{{- $caPublic                     := (lookup "v1" "ConfigMap" $currentNamespace "kube-root-ca.crt") }}
+{{- $cloudAuthSecretData          := (get $cloudAuthSecret "data") | default dict }}
+{{- $caPublicData                 := (get $caPublic        "data") | default dict }}
+{{- $serviceAccountJSON           := printf "%s" $cloudAuthSecretData.serviceAccountJSON | b64dec }}
+{{- $folderID                     := printf "%s" $cloudAuthSecretData.folderID | b64dec }}
+apiVersion: v1
+stringData:
+  serviceAccountJSON: |-
+    {{ $serviceAccountJSON }}
+  folderID: |-
+    {{ $folderID }}
+  userData: |
+    #cloud-config
+    version: v1
+    users:
+
+      - name: {{ .Values.ssh.username }}
+        sudo: ALL=(ALL) NOPASSWD:ALL
+        groups: users, admin
+        shell: /bin/bash
+        lock_passwd: true
+        ssh_authorized_keys:
+          - {{ .Values.ssh.key }}
+      
+    packages:
+      - tree
+      - socat 
+      - conntrack
+      - ethtool
+      - nftables
+
+    runcmd:
+      - mkdir -p /etc/kubernetes/manifests
+      - hostnamectl set-hostname  $(cat /proc/sys/kernel/hostname | awk -F '.' '{print $1}')
+      - wget -O /tmp/fraimactl "https://github.com/fraima/fraima/releases/download/v0.0.1/fraimactl-v0.0.1-linux-amd64.tar.gz"
+      - tar -xzf /tmp/fraimactl -C /usr/bin/
+      - chmod +x /usr/bin/fraimactl
+      - fraimactl --config=/etc/kubernetes/fraimactl/config.yaml
+      - systemctl daemon-reload
+      - systemctl enable  systemd-resolved.service
+      - systemctl start   systemd-resolved.service
+
+    write_files:
+
+      - path: /etc/kubernetes/kubelet/bootstrap-kubeconfig
+        owner: root:root
+        permissions: '0644'
+        content: |
+          ---
+          apiVersion: v1
+          clusters:
+          - cluster:
+              insecure-skip-tls-verify: true
+              server: https://{{ .Values.clusterUrl }}:{{ .Values.clusterPort }}
+            name: bootstrap
+          contexts:
+          - context:
+              cluster: bootstrap
+              user: kubelet-bootstrap
+            name: bootstrap
+          current-context: bootstrap
+          kind: Config
+          preferences: {}
+          users:
+          - name: kubelet-bootstrap
+            user:
+              token: <<BOOTSTRAP_TOKEN>>
+
+      - path: /etc/kubernetes/fraimactl/config.yaml
+        owner: root:root
+        permissions: '0644'
+        content: |
+          - apiVersion: fraima.io/v1alpha
+            kind: Containerd
+            spec:
+              service:
+                extraArgs:
+                  # This document provides the description of the CRI plugin configuration. 
+                  # The CRI plugin config is part of the containerd config
+                  # Default: /etc/containerd/config.toml
+                  config: /etc/kubernetes/containerd/config.toml
+              configuration:
+                extraArgs:
+                  version: 2
+                  plugins:
+                    io.containerd.grpc.v1.cri:
+                      containerd:
+                        runtimes:
+                          runc:
+                            # Runtime v2 introduces a first class shim API for runtime authors to integrate with containerd. 
+                            # The shim API is minimal and scoped to the execution lifecycle of a container.
+                            runtime_type: "io.containerd.runc.v2"
+                            options:
+                              # While containerd and Kubernetes use the legacy cgroupfs driver for managing cgroups by default, 
+                              # it is recommended to use the systemd driver on systemd-based hosts for compliance of the "single-writer" rule of cgroups. 
+                              # To configure containerd to use the systemd driver, set the following option:
+                              SystemdCgroup: true
+              downloading:
+                - name: cotainerd
+                  src: https://github.com/containerd/containerd/releases/download/v1.6.6/containerd-1.6.6-linux-amd64.tar.gz
+                  checkSum:
+                    src: https://github.com/containerd/containerd/releases/download/v1.6.6/containerd-1.6.6-linux-amd64.tar.gz.sha256sum
+                    type: "sha256"
+                  path: /usr/bin/
+                  owner: root:root
+                  permission: 0645
+                  unzip:
+                    status: true
+                    files: 
+                      - bin/containerd
+                      - bin/containerd-shim
+                      - bin/containerd-shim-runc-v1
+                      - bin/containerd-shim-runc-v2
+                      - bin/containerd-stress
+                      - bin/ctr
+
+                - name: runc
+                  src: https://github.com/opencontainers/runc/releases/download/v1.1.3/runc.amd64
+                  path: /usr/bin/
+                  owner: root:root
+                  permission: 0645
+              starting:
+                - systemctl enable containerd
+                - systemctl start containerd
+
+
+          - apiVersion: fraima.io/v1alpha
+            kind: Kubelet
+            spec:
+              service:
+                extraArgs:
+                  # Number for the log level verbosity
+                  v: 2
+                  # The directory where the TLS certs are located. 
+                  # If --tls-cert-file and --tls-private-key-file are provided, this flag will be ignored.
+                  # Default: /var/lib/kubelet/pki
+                  cert-dir: /etc/kubernetes/pki/certs/kubelet
+                  # The Kubelet will load its initial configuration from this file. 
+                  # The path may be absolute or relative; relative paths start at the Kubelet's current working directory. 
+                  # Omit this flag to use the built-in default configuration values. 
+                  # Command-line flags override configuration from this file.
+                  config: /etc/kubernetes/kubelet/config.yaml
+                  # Path to a kubeconfig file, specifying how to connect to the API server. 
+                  # Providing --kubeconfig enables API server mode, omitting --kubeconfig enables standalone mode.
+                  kubeconfig: /etc/kubernetes/kubelet/kubeconfig
+                  # Path to a kubeconfig file that will be used to get client certificate for kubelet. 
+                  # If the file specified by --kubeconfig does not exist, 
+                  # the bootstrap kubeconfig is used to request a client certificate from the API server. 
+                  # On success, a kubeconfig file referencing the generated client certificate and key is written to the path specified by --kubeconfig. 
+                  # The client certificate and key file will be stored in the directory pointed by --cert-dir.
+                  bootstrap-kubeconfig: /etc/kubernetes/kubelet/bootstrap-kubeconfig
+                  # The endpoint of remote runtime service. Unix Domain Sockets are supported on Linux, 
+                  # while npipe and tcp endpoints are supported on windows. 
+                  # Examples: unix:///path/to/runtime.sock, npipe:////./pipe/runtime.
+                  container-runtime-endpoint: /run/containerd/containerd.sock
+                  container-runtime: remote
+                  # Specified image will not be pruned by the image garbage collector. 
+                  # When container-runtime is set to docker, all containers in each pod will use the network/IPC namespaces from this image. 
+                  # Other CRI implementations have their own configuration to set this image.
+                  # Default: registry.k8s.io/pause:3.6
+                  pod-infra-container-image: k8s.gcr.io/pause:3.6
+                  # The provider for cloud services. Set to empty string for running with no cloud provider.
+                  # If set, the cloud provider determines the name of the node (consult cloud provider documentation to determine 
+                  # if and how the hostname is used). 
+                  # (DEPRECATED: will be removed in 1.24 or later, in favor of removing cloud provider code from Kubelet.)
+                  cloud-provider: external
+              # configuration: {}
+              downloading:
+                - name: kubelet
+                  src: https://dl.k8s.io/release/v1.23.12/bin/linux/amd64/kubelet
+                  checkSum:
+                    src: "https://dl.k8s.io/v1.23.12/bin/linux/amd64/kubelet.sha256"
+                    type: "sha256"
+                  path: /usr/bin/
+                  owner: root:root
+                  permission: 0645
+              starting:
+                - systemctl enable kubelet
+                - systemctl start kubelet
+
+          - apiVersion: fraima.io/v1alpha
+            kind: Sysctl
+            spec:
+              configuration:
+                extraArgs:
+                  net.ipv4.ip_forward: 1
+              starting:
+                - sudo sysctl --system
+
+          - apiVersion: fraima.io/v1alpha
+            kind: Modprob
+            spec:
+              configuration:
+                extraArgs:
+                - br_netfilter
+                - overlay
+              starting:
+                - sudo modprobe overlay
+                - sudo modprobe br_netfilter
+                - sudo sysctl --system
+
+          - apiVersion: fraima.io/v1alpha
+            kind: Kubectl
+            spec:
+              downloading:
+                - name: kubectl
+                  src: https://dl.k8s.io/release/v1.23.12/bin/linux/amd64/kubectl
+                  checkSum:
+                    src: "https://dl.k8s.io/v1.23.12/bin/linux/amd64/kubectl.sha256"
+                    type: "sha256"
+                  path: /usr/bin/
+                  owner: root:root
+                  permission: 0645
+
+          - apiVersion: fraima.io/v1alpha
+            kind: Crictl
+            spec:
+              downloading:
+                - name: crictl
+                  src: https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.26.0/crictl-v1.26.0-linux-amd64.tar.gz
+                  path: /usr/bin/
+                  checkSum:
+                    src: https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.26.0/crictl-v1.26.0-linux-amd64.tar.gz.sha256
+                    type: "sha256"
+                  owner: root:root
+                  permission: 0645
+                  unzip:
+                    status: true
+                    files: 
+                      - "crictl"
+
+      - path: /etc/kubernetes/kubelet/config.yaml
+        owner: root:root
+        permissions: '0644'
+        content: |
+          ---
+          apiVersion: kubelet.config.k8s.io/v1beta1
+          kind: KubeletConfiguration
+          registerNode: true
+          authentication:
+            anonymous:
+              enabled: false
+            webhook:
+              cacheTTL: 0s
+              enabled: true
+            x509:
+              clientCAFile: "/etc/kubernetes/pki/ca/kubernetes-ca.pem"
+          authorization:
+            mode: Webhook
+            webhook:
+              cacheAuthorizedTTL: 0s
+              cacheUnauthorizedTTL: 0s
+          cgroupDriver: systemd
+          clusterDNS:
+            - "29.64.0.10"
+          clusterDomain: cluster.local
+          cpuManagerReconcilePeriod: 0s
+          evictionPressureTransitionPeriod: 0s
+          fileCheckFrequency: 0s
+          healthzBindAddress: 127.0.0.1
+          healthzPort: 10248
+          httpCheckFrequency: 0s
+          imageMinimumGCAge: 0s
+          logging:
+            flushFrequency: 0
+            options:
+              json:
+                infoBufferSize: "0"
+            verbosity: 0
+          memorySwap: {}
+          nodeStatusReportFrequency: 1s
+          nodeStatusUpdateFrequency: 1s
+          resolvConf: /run/systemd/resolve/resolv.conf
+          rotateCertificates: false
+          runtimeRequestTimeout: 0s
+          serverTLSBootstrap: true
+          shutdownGracePeriod: 15s
+          shutdownGracePeriodCriticalPods: 5s
+          staticPodPath: "/etc/kubernetes/manifests"
+          streamingConnectionIdleTimeout: 0s
+          syncFrequency: 0s
+          volumeStatsAggPeriod: 0s
+          containerLogMaxSize: 50Mi
+          maxPods: 250
+          kubeAPIQPS: 50
+          kubeAPIBurst: 100
+          podPidsLimit: 4096
+          serializeImagePulls: false
+          systemReserved:
+            ephemeral-storage: 1Gi
+          featureGates:
+            RotateKubeletServerCertificate: true
+            APIPriorityAndFairness: true
+            DownwardAPIHugePages: true
+            PodSecurity: true
+            CSIMigrationAWS: false
+            CSIMigrationAzureFile: false
+            CSIMigrationGCE: false
+            CSIMigrationvSphere: false
+          rotateCertificates: false
+          serverTLSBootstrap: true
+          tlsMinVersion: VersionTLS12
+          tlsCipherSuites:
+            - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+            - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+            - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+            - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+            - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
+            - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+          allowedUnsafeSysctls:
+            - "net.core.somaxconn"
+          evictionSoft: 
+            memory.available: 3Gi 
+            nodefs.available: 25%
+            nodefs.inodesFree: 15%
+            imagefs.available: 30%
+            imagefs.inodesFree: 25%
+          evictionSoftGracePeriod:  
+            memory.available: 2m30s
+            nodefs.available: 2m30s
+            nodefs.inodesFree: 2m30s
+            imagefs.available: 2m30s
+            imagefs.inodesFree: 2m30s
+          evictionHard:
+            memory.available: 2Gi
+            nodefs.available: 20%
+            nodefs.inodesFree: 10%
+            imagefs.available: 25%
+            imagefs.inodesFree: 15%
+          evictionPressureTransitionPeriod: 5s 
+          imageMinimumGCAge: 12h 
+          imageGCHighThresholdPercent: 55
+          imageGCLowThresholdPercent: 50
+
+      - path: /etc/kubernetes/pki/ca/kubernetes-ca.pem
+        owner: root:root
+        permissions: '0644'
+        content: |
+          {{- range $k, $v := $caPublicData }}
+          {{- if $k = "ca.crt" }}
+          {{- $v | nindent 10 }}
+          {{end}}
+          {{end}}
+
+kind: Secret
+metadata:
+  name: machine-class.{{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook-weight": "1"
+type: Opaque
+{{- end }}

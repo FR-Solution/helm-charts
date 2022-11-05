@@ -1,0 +1,297 @@
+apiVersion: v1
+entries:
+  cluster-machine-controller:
+  - apiVersion: v2
+    appVersion: 0.36.0
+    created: "2025-05-14T19:47:35.466942+03:00"
+    description: A Helm chart for Kubernetes
+    digest: ef60d6e18fea703cbf005ec581ffd64b08ee72a114dd14d9494fe724b6d56f3b
+    name: cluster-machine-controller
+    type: application
+    urls:
+    - https://helm.fraima.io/helm-chart-revisions/cluster-machine-controller-0.0.3.tgz
+    version: 0.0.3
+  machine-group:
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2025-05-14T19:47:35.469084+03:00"
+    description: machine configuration tool for kubernetes
+    digest: f4f2832ee45db9e640b8962aa70a1d23a36e0e07b80ae2e36445d5a60d75065c
+    name: machine-group
+    type: application
+    urls:
+    - https://helm.fraima.io/helm-chart-revisions/machine-group-0.1.14.tgz
+    version: 0.1.14
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2025-05-14T19:47:35.468769+03:00"
+    description: machine configuration tool for kubernetes
+    digest: 1f875cea1e00788cfca0cedcb59778598ecf877998a4a1fa0ad1edcab6cd61c4
+    name: machine-group
+    type: application
+    urls:
+    - https://helm.fraima.io/helm-chart-revisions/machine-group-0.1.13.tgz
+    version: 0.1.13
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2025-05-14T19:47:35.46841+03:00"
+    description: machine configuration tool for kubernetes
+    digest: c0887d8744ef6404c0814ba357f4599b8eead89b7c01498c63145b2f4bfcfbdd
+    name: machine-group
+    type: application
+    urls:
+    - https://helm.fraima.io/helm-chart-revisions/machine-group-0.1.12.tgz
+    version: 0.1.12
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2025-05-14T19:47:35.468003+03:00"
+    description: machine configuration tool for kubernetes
+    digest: 8f1f0d1b25cc7d8d389aa1dc0ec3a532882cad2f9cf9367ee58b6646d0749332
+    name: machine-group
+    type: application
+    urls:
+    - https://helm.fraima.io/helm-chart-revisions/machine-group-0.1.11.tgz
+    version: 0.1.11
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2025-05-14T19:47:35.467459+03:00"
+    description: machine configuration tool for kubernetes
+    digest: 0833e5052062876189242bab77f0e32df42d82d1cde5df3e90af3c78dca1a8c4
+    name: machine-group
+    type: application
+    urls:
+    - https://helm.fraima.io/helm-chart-revisions/machine-group-0.1.10.tgz
+    version: 0.1.10
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2025-05-14T19:47:35.470775+03:00"
+    description: machine configuration tool for kubernetes
+    digest: 8e3d90e3ce8831ff013016f8c11b5d32ad7eb20543b78ea492e4c4c8be596291
+    name: machine-group
+    type: application
+    urls:
+    - https://helm.fraima.io/helm-chart-revisions/machine-group-0.1.9.tgz
+    version: 0.1.9
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2025-05-14T19:47:35.470441+03:00"
+    description: machine configuration tool for kubernetes
+    digest: 5e4f4ff7ebbbaa870bab8dbb4958b2c2b00c608504e0345ac3f18f59e8458d9f
+    name: machine-group
+    type: application
+    urls:
+    - https://helm.fraima.io/helm-chart-revisions/machine-group-0.1.8.tgz
+    version: 0.1.8
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2025-05-14T19:47:35.470102+03:00"
+    description: machine configuration tool for kubernetes
+    digest: ada9619591cc9fc8de972076f1f796890529d8c6547be9d7bb572f310ef0f347
+    name: machine-group
+    type: application
+    urls:
+    - https://helm.fraima.io/helm-chart-revisions/machine-group-0.1.7.tgz
+    version: 0.1.7
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2025-05-14T19:47:35.469756+03:00"
+    description: machine configuration tool for kubernetes
+    digest: 4c5d8fb5fd2d63471f1631c63ff32c7f3af14a66254a78488de72385490261f7
+    name: machine-group
+    type: application
+    urls:
+    - https://helm.fraima.io/helm-chart-revisions/machine-group-0.1.6.tgz
+    version: 0.1.6
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2025-05-14T19:47:35.469405+03:00"
+    description: machine configuration tool for kubernetes
+    digest: b4b95804f6cad4fcc274c4e0695851838476f9ac75356814b316afef2cba64ad
+    name: machine-group
+    type: application
+    urls:
+    - https://helm.fraima.io/helm-chart-revisions/machine-group-0.1.5.tgz
+    version: 0.1.5
+  openshift-mco:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2025-05-14T19:47:35.472793+03:00"
+    dependencies:
+    - name: appSpec
+      repository: file://../../../appspec/0.1.0/appspec
+      version: '*'
+    description: A Helm chart for Kubernetes
+    digest: 6c9aaeaa55d2af82122f89c6579f6f1939a78e8fb89345439c844b0fbf509279
+    name: openshift-mco
+    type: application
+    urls:
+    - https://helm.fraima.io/helm-chart-revisions/openshift-mco-0.1.0.tgz
+    version: 0.1.0
+  yandex-cloud-controller:
+  - apiVersion: v2
+    appVersion: 0.26.1
+    created: "2025-05-14T19:47:35.475909+03:00"
+    description: A Helm chart for management yandex cloud resources
+    digest: db03261abc35003f374e45311b22b5e15f9ed4f016b0ff8754845b52a9a9c203
+    maintainers:
+    - name: Dobry-kot
+      url: https://github.com/fraima
+    name: yandex-cloud-controller
+    sources:
+    - https://github.com/fraima/helm-charts/tree/main/helm-chart-sources/yandex-cloud-controller
+    type: application
+    urls:
+    - https://helm.fraima.io/helm-chart-revisions/yandex-cloud-controller-0.0.8.tgz
+    version: 0.0.8
+  - apiVersion: v2
+    appVersion: 0.25.2
+    created: "2025-05-14T19:47:35.474658+03:00"
+    description: A Helm chart for management yandex cloud resources
+    digest: 5045db638a6f6ddb85db6c052f1af002d4a3c44b857c25e72734a4cd7c385191
+    maintainers:
+    - name: Dobry-kot
+      url: https://github.com/fraima
+    name: yandex-cloud-controller
+    sources:
+    - https://github.com/fraima/helm-charts/tree/main/helm-chart-sources/yandex-cloud-controller
+    type: application
+    urls:
+    - https://helm.fraima.io/helm-chart-revisions/yandex-cloud-controller-0.0.7.tgz
+    version: 0.0.7
+  - apiVersion: v2
+    appVersion: 0.25.2
+    created: "2025-05-14T19:47:35.474137+03:00"
+    description: A Helm chart for management yandex cloud resources
+    digest: 1abd6050ed279fac05ee88e0e0824d8d4078d557b9d048f50f3228b0c3ab9fcf
+    maintainers:
+    - name: Dobry-kot
+      url: https://github.com/fraima
+    name: yandex-cloud-controller
+    sources:
+    - https://github.com/fraima/helm-charts/tree/main/helm-chart-sources/yandex-cloud-controller
+    type: application
+    urls:
+    - https://helm.fraima.io/helm-chart-revisions/yandex-cloud-controller-0.0.6.tgz
+    version: 0.0.6
+  - apiVersion: v2
+    appVersion: 0.25.2
+    created: "2025-05-14T19:47:35.473661+03:00"
+    description: A Helm chart for management yandex cloud resources
+    digest: 6f4d25f773a3ec72611f13295f2fe3f144630a6dcc341945ee828873143a1a5b
+    maintainers:
+    - name: Dobry-kot
+      url: https://github.com/fraima
+    name: yandex-cloud-controller
+    sources:
+    - https://github.com/fraima/helm-charts/tree/main/helm-chart-sources/yandex-cloud-controller
+    type: application
+    urls:
+    - https://helm.fraima.io/helm-chart-revisions/yandex-cloud-controller-0.0.4.tgz
+    version: 0.0.4
+  - apiVersion: v2
+    appVersion: 0.25.2
+    created: "2025-05-14T19:47:35.473313+03:00"
+    description: A Helm chart for management yandex cloud resources
+    digest: 14d1d726539112365672ab48d1ec0211d50cdd119dd12e4dfee532af45599397
+    maintainers:
+    - name: Dobry-kot
+      url: https://github.com/fraima
+    name: yandex-cloud-controller
+    sources:
+    - https://github.com/fraima/helm-charts/tree/main/helm-chart-sources/yandex-cloud-controller
+    type: application
+    urls:
+    - https://helm.fraima.io/helm-chart-revisions/yandex-cloud-controller-0.0.3.tgz
+    version: 0.0.3
+  yandex-csi-controller:
+  - apiVersion: v2
+    appVersion: 0.9.12
+    created: "2025-05-14T19:47:35.479396+03:00"
+    description: A Helm chart for management yandex storages
+    digest: ec374f7e9959cc61791f122fe8fd142a3ec326577c49b5c9efe02813b50cb32a
+    maintainers:
+    - name: Dobry-kot
+      url: https://github.com/fraima
+    name: yandex-csi-controller
+    sources:
+    - https://github.com/fraima/helm-charts/tree/main/helm-chart-sources/yandex-csi-controller
+    type: application
+    urls:
+    - https://helm.fraima.io/helm-chart-revisions/yandex-csi-controller-0.0.8.tgz
+    version: 0.0.8
+  - apiVersion: v2
+    appVersion: 0.9.12
+    created: "2025-05-14T19:47:35.47889+03:00"
+    description: A Helm chart for management yandex storages
+    digest: cc1d5ec1bafe4fa5c8eae100dd42a8f7221066d94139bc301fd3428bdfcaebd3
+    maintainers:
+    - name: Dobry-kot
+      url: https://github.com/fraima
+    name: yandex-csi-controller
+    sources:
+    - https://github.com/fraima/helm-charts/tree/main/helm-chart-sources/yandex-csi-controller
+    type: application
+    urls:
+    - https://helm.fraima.io/helm-chart-revisions/yandex-csi-controller-0.0.7.tgz
+    version: 0.0.7
+  - apiVersion: v2
+    appVersion: 0.9.12
+    created: "2025-05-14T19:47:35.478367+03:00"
+    description: A Helm chart for management yandex storages
+    digest: fb34a3d296b1c4ce3b51c48307ce13bdadaf4a15cdccbc886cb2e777be8e1522
+    maintainers:
+    - name: Dobry-kot
+      url: https://github.com/fraima
+    name: yandex-csi-controller
+    sources:
+    - https://github.com/fraima/helm-charts/tree/main/helm-chart-sources/yandex-csi-controller
+    type: application
+    urls:
+    - https://helm.fraima.io/helm-chart-revisions/yandex-csi-controller-0.0.6.tgz
+    version: 0.0.6
+  - apiVersion: v2
+    appVersion: 0.9.12
+    created: "2025-05-14T19:47:35.477803+03:00"
+    description: A Helm chart for management yandex storages
+    digest: f1fa6de592fb6f9d0afcc4f945164bf9784149d3a9016003ef5aa3f2bd27856c
+    maintainers:
+    - name: Dobry-kot
+      url: https://github.com/fraima
+    name: yandex-csi-controller
+    sources:
+    - https://github.com/fraima/helm-charts/tree/main/helm-chart-sources/yandex-csi-controller
+    type: application
+    urls:
+    - https://helm.fraima.io/helm-chart-revisions/yandex-csi-controller-0.0.5.tgz
+    version: 0.0.5
+  - apiVersion: v2
+    appVersion: 0.9.12
+    created: "2025-05-14T19:47:35.477264+03:00"
+    description: A Helm chart for management yandex storages
+    digest: 649fb2822dfdc267ec6d4ef41460f4856a1cb316e80c7fc02fd1b9366c64953f
+    maintainers:
+    - name: Dobry-kot
+      url: https://github.com/fraima
+    name: yandex-csi-controller
+    sources:
+    - https://github.com/fraima/helm-charts/tree/main/helm-chart-sources/yandex-csi-controller
+    type: application
+    urls:
+    - https://helm.fraima.io/helm-chart-revisions/yandex-csi-controller-0.0.4.tgz
+    version: 0.0.4
+  - apiVersion: v2
+    appVersion: 0.9.12
+    created: "2025-05-14T19:47:35.476568+03:00"
+    description: A Helm chart for management yandex storages
+    digest: 3d5b83fb5cc03fcf2f7834083599384341b851de6e6963c3af7cbca896bd82c5
+    maintainers:
+    - name: Dobry-kot
+      url: https://github.com/fraima
+    name: yandex-csi-controller
+    sources:
+    - https://github.com/fraima/helm-charts/tree/main/helm-chart-sources/yandex-csi-controller
+    type: application
+    urls:
+    - https://helm.fraima.io/helm-chart-revisions/yandex-csi-controller-0.0.3.tgz
+    version: 0.0.3
+generated: "2025-05-14T19:47:35.46625+03:00"

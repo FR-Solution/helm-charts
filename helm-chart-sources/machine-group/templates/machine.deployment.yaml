@@ -1,0 +1,52 @@
+{{ if eq .Values.provider.type "YandexCloud" }}
+---
+apiVersion: machine.sapcloud.io/v1alpha1
+kind: MachineDeployment
+metadata:
+  name: worker-{{ .Release.Name }}
+  namespace: {{ .Values.machineContoller.namespace | default "fraima-ccm" }}
+  annotations:
+    helm.sh/hook-weight: "5"
+spec:
+  minReadySeconds: {{ .Values.minReadySeconds }}
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      instance-group: {{ .Release.Name }}
+    {{- with .Values.metadata.labels }}
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+
+  {{- with .Values.strategy }}
+  strategy:
+    rollingUpdate:
+      maxSurge: {{ .rollingUpdate.maxSurge | default 1 }}
+      maxUnavailable: {{ .rollingUpdate.maxUnavailable | default 1 }}
+    type: {{ .type | default "RollingUpdate" }}
+  {{- end }}
+
+  template:
+    metadata:
+      labels:
+        instance-group: {{ .Release.Name }}
+      {{- with .Values.metadata.labels }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      class:
+        {{- with .Values.provider }}
+        {{- if eq .type "YandexCloud" }}
+        kind: YandexMachineClass
+        {{- end }}
+        {{- end }}
+        name: {{ include "yandex.machine-class.name" . }}
+      
+      nodeTemplate:
+        metadata:
+        {{- with .Values.metadata.nodeLabels }}
+            labels:
+              {{- toYaml . | nindent 14 }}
+        {{- end }}
+        spec:
+          unschedulable: false
+{{- end }}

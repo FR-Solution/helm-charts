@@ -1,0 +1,48 @@
+machineContoller:
+  namespace: fraima-ccm
+
+clusterUrl: example.com
+clusterPort: 443
+
+replicas: 2
+minReadySeconds: 300
+
+strategy:
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 1
+  type: RollingUpdate
+
+selector:
+  matchLabels: {}
+
+metadata:
+  labels: {}
+  nodeLabels: {}
+  cloudLabels: {}
+
+bootDisk:
+  imageID: fd8ingbofbh3j5h7i8ll
+  typeID: network-hdd
+  autoDelete: true
+  size: 20
+
+resources:
+  cpu: 4
+  coreFraction: 20
+  memory: 8
+
+networkInterface:
+  nat: true
+  subnetID: ""
+  regionID: "ru-central1"
+  zone: ""
+
+provider:
+  type: YandexCloud
+  # secret name with content for cloud authentication
+  name: example
+
+ssh:
+  username: dkot
+  key: ""

@@ -1,0 +1,11 @@
+{{ if eq .Values.provider.type "YandexCloud" }}
+apiVersion: machine.sapcloud.io/v1alpha1
+kind: YandexMachineClass
+metadata:
+  name: {{ include "yandex.machine-class.name" . }}
+  namespace: {{ .Values.machineContoller.namespace | default "fraima-ccm" }}
+  annotations:
+    helm.sh/hook-weight: "3"
+spec:
+  {{ (include "yandex.machine-class.spec" .) | nindent 2 }}
+{{- end }}

@@ -1,0 +1,99 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: botstrap-tokens.{{ .Values.providerName }}-{{ include "cluster-machine-controller.name" . }}
+  namespace: kube-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - create
+  - delete
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: machine-class.{{ .Values.providerName }}-{{ include "cluster-machine-controller.name" . }}
+  namespace: {{ .Release.Namespace }}
+rules:
+- apiGroups:
+  - machine.sapcloud.io
+  resources:
+  - awsmachineclasses
+  - azuremachineclasses
+  - gcpmachineclasses
+  - openstackmachineclasses
+  - alicloudmachineclasses
+  - packetmachineclasses
+  - vspheremachineclasses
+  - yandexmachineclasses
+  - machinedeployments
+  - machines
+  - machinesets
+  - awsmachineclasses/status
+  - azuremachineclasses/status
+  - gcpmachineclasses/status
+  - openstackmachineclasses/status
+  - alicloudmachineclasses/status
+  - packetmachineclasses/status
+  - vspheremachineclasses/status
+  - yandexmachineclasses/status
+  - machinedeployments/status
+  - machines/status
+  - machinesets/status
+  verbs:
+  - create
+  - delete
+  - deletecollection
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  - configmaps
+  verbs:
+  - patch
+  - update
+  - list
+  - get
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - delete
+  - deletecollection
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - endpoints
+  verbs:
+  - create
+- apiGroups:
+  - ""
+  resourceNames:
+  - machine-controller-manager
+  resources:
+  - endpoints
+  verbs:
+  - get
+  - update
+  - patch
+  - delete
+  - watch

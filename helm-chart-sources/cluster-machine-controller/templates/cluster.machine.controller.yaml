@@ -1,0 +1,185 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.providerName }}-{{ include "cluster-machine-controller.name" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 2
+
+  selector:
+    matchLabels:
+      app: {{ .Values.providerName }}-{{ include "cluster-machine-controller.name" . }}
+
+  strategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate
+
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: {{ .Values.providerName }}-{{ include "cluster-machine-controller.name" . }}
+
+    spec:
+      containers:
+      - name: controller
+        args:
+          - --namespace={{ .Release.Namespace }}
+          - --cloud-provider={{ .Values.providerName }}
+          - --address={{ .Values.controller.listenAddress }}
+          - --port={{ .Values.controller.port }}
+          {{- with .Values.controller.extraArgs }}
+            {{- range $k, $v := . }}
+          - --{{ $k }}={{ $v }}
+            {{end}}
+          {{- end }}
+
+        command:
+          - /machine-controller-manager
+        env:
+          - name: LEADER_ELECTION_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+
+        image: {{ .Values.controller.image }}
+        imagePullPolicy: IfNotPresent
+
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: {{ .Values.kubeRbacProxy.port }}
+            scheme: HTTPS
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: {{ .Values.kubeRbacProxy.port }}
+            scheme: HTTPS
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        
+        resources:
+          requests:
+            ephemeral-storage: 50Mi
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+
+      - name: kube-rbac-proxy
+        args:
+          - --secure-listen-address=$(KUBE_RBAC_PROXY_LISTEN_ADDRESS):{{ .Values.kubeRbacProxy.port }}
+          - --client-ca-file=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          - --v=2
+          - --logtostderr=true
+          - --config-file=/etc/kube-rbac-proxy/config-file.yaml
+          - --proxy-endpoints-port={{ .Values.kubeRbacProxy.proxyEndpointsPort }}
+          - --upstream=http://{{ .Values.controller.listenAddress }}:{{ .Values.controller.port }}/
+          - --ignore-paths=/healthz
+
+        env:
+          - name: KUBE_RBAC_PROXY_LISTEN_ADDRESS
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: status.podIP
+
+        volumeMounts:
+          - name: config
+            mountPath: /etc/kube-rbac-proxy
+
+        image: {{ .Values.kubeRbacProxy.image }}
+        imagePullPolicy: IfNotPresent
+
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: {{ .Values.kubeRbacProxy.proxyEndpointsPort }}
+            scheme: HTTPS
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: {{ .Values.kubeRbacProxy.proxyEndpointsPort }}
+            scheme: HTTPS
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+
+        ports:
+          - containerPort: {{ .Values.kubeRbacProxy.port }}
+            hostPort: {{ .Values.kubeRbacProxy.port }}
+            name: https
+            protocol: TCP
+          - containerPort: {{ .Values.kubeRbacProxy.proxyEndpointsPort }}
+            name: proxy
+
+        resources:
+          requests:
+            ephemeral-storage: 50Mi
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+ 
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+
+      dnsPolicy: Default
+      hostNetwork: true
+
+      priorityClassName: system-cluster-critical
+      restartPolicy: Always
+      schedulerName: default-scheduler
+
+      securityContext:
+        runAsGroup: 65534
+        runAsNonRoot: true
+        runAsUser: 65534
+
+      serviceAccount: {{ .Values.providerName }}-{{ include "cluster-machine-controller.name" . }}
+      serviceAccountName: {{ .Values.providerName }}-{{ include "cluster-machine-controller.name" . }}
+
+      terminationGracePeriodSeconds: 30
+
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+
+      tolerations:
+        - operator: Exists
+
+      volumes:
+      - name: config
+        configMap:
+          name: {{ .Values.providerName }}-{{ include "cluster-machine-controller.name" . }}-kube-rbac-proxy

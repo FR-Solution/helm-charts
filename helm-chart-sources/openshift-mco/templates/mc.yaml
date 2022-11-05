@@ -1,0 +1,66 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  name: rendered-default
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+  extensions: []
+  fips: false
+  kernelArguments: []
+  kernelType: default
+  osImageURL: ""
+
+---
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: control-plane
+  name: 99-master-file
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    storage:
+      files:
+      - contents:
+          source: data:,
+        mode: 420
+        overwrite: true
+        path: /etc/kubernetes/cloud.conf
+  extensions: null
+  fips: false
+  kernelArguments: null
+  kernelType: ""
+  osImageURL: ""
+
+---
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: data-plane
+  name: 99-worker-file
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    storage:
+      files:
+      - contents:
+          source: data:,
+        mode: 420
+        overwrite: true
+        path: /etc/kubernetes/cloud.conf
+      - contents:
+          source: data:,
+        mode: 420
+        overwrite: true
+        path: /etc/kubernetes/treksa.conf
+  extensions: null
+  fips: false
+  kernelArguments: null
+  kernelType: ""
+  osImageURL: ""
